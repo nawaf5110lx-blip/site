@@ -1,113 +1,233 @@
-(async () => {
-  if (!document.querySelector("video")) return;
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MDT CIA</title>
 
-  const EXCLUDED_HOSTS = ["tiktok.com"];
-  if (EXCLUDED_HOSTS.some(h => location.hostname.includes(h))) return;
+<style>
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#0b0f14;
+  color:#fff;
+}
 
-  const load = src => new Promise(r => {
-    const s = document.createElement("script");
-    s.src = src; s.onload = r;
-    document.head.appendChild(s);
+/* شعار عام في كل الموقع */
+.global-logo{
+  position:fixed;
+  top:10px;
+  left:10px;
+  z-index:9999;
+}
+.global-logo img{
+  width:70px;
+  opacity:0.9;
+}
+
+/* خلفية شعار خفيفة */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:url("https://upload.wikimedia.org/wikipedia/commons/2/25/Seal_of_the_Central_Intelligence_Agency.svg") center/300px no-repeat;
+  opacity:0.05;
+  pointer-events:none;
+}
+
+.center{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+.card{
+  background:#111823;
+  border:1px solid #1f2a3a;
+  border-radius:12px;
+  padding:20px;
+  width:320px;
+}
+
+.login-logo{
+  text-align:center;
+  margin-bottom:15px;
+}
+.login-logo img{
+  width:120px;
+}
+
+input,button{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #2a3952;
+  background:#0f1623;
+  color:#fff;
+}
+
+button{cursor:pointer}
+
+.wrap{display:none}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px;
+  border-bottom:1px solid #1a2545;
+}
+
+.map-wrap{position:relative}
+#map{
+  width:100%;
+  border-radius:10px;
+  border:1px solid #1f2a3a;
+}
+
+.pin{
+  position:absolute;
+  transform:translate(-50%,-100%);
+  cursor:pointer;
+}
+.pin::after{content:"📍";font-size:24px}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+</style>
+</head>
+
+<body>
+
+<!-- شعار في كل الموقع -->
+<div class="global-logo">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/2/25/Seal_of_the_Central_Intelligence_Agency.svg" alt="CIA">
+</div>
+
+<!-- تسجيل الدخول -->
+<div id="login" class="center">
+  <div class="card">
+    <div class="login-logo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/25/Seal_of_the_Central_Intelligence_Agency.svg" alt="CIA">
+    </div>
+    <h2 id="t_login">تسجيل الدخول</h2>
+    <input id="u" placeholder="اسم المستخدم">
+    <input id="p" type="password" placeholder="كلمة المرور">
+    <button onclick="login()">دخول</button>
+    <button onclick="toggleLang()">AR / EN</button>
+  </div>
+</div>
+
+<!-- التطبيق -->
+<div id="app" class="wrap">
+  <div class="top">
+    <b id="welcome"></b>
+    <button onclick="toggleLang()">AR / EN</button>
+  </div>
+
+  <div class="card">
+    <h3 id="t_map">الخريطة</h3>
+    <p><b>⬇ هنا رابط الخريطة ⬇</b></p>
+    <div class="map-wrap">
+      <img id="map">
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>المستخدمون</h3>
+    <p><b>⬇ هنا إضافة المستخدمين ⬇</b></p>
+  </div>
+</div>
+
+<!-- نافذة إضافة دبوس -->
+<div id="modal" class="modal">
+  <div class="card">
+    <h3>إضافة معلومة</h3>
+    <input id="name" placeholder="الاسم">
+    <input id="info" placeholder="المعلومات">
+    <button onclick="savePin()">حفظ</button>
+    <button onclick="closeModal()">إغلاق</button>
+  </div>
+</div>
+
+<script>
+/* ===============================
+   هنا إضافة المستخدمين
+================================= */
+const USERS=[
+  {username:"owner",password:"1234",role:"admin",banned:false},
+  {username:"user1",password:"1111",role:"user",banned:false}
+];
+
+/* ===============================
+   هنا رابط الخريطة
+================================= */
+const MAP_URL="https://i.imgur.com/4NZ6uLY.jpeg";
+
+let currentUser=null;
+let lang="ar";
+let pins=[], clickPos=null;
+
+function toggleLang(){
+  lang = lang==="ar" ? "en" : "ar";
+  document.getElementById("t_login").innerText = lang==="ar" ? "تسجيل الدخول" : "Login";
+  document.getElementById("t_map").innerText = lang==="ar" ? "الخريطة" : "Map";
+}
+
+function login(){
+  const u = document.getElementById("u").value;
+  const p = document.getElementById("p").value;
+  const user = USERS.find(x=>x.username===u && x.password===p);
+  if(!user) return alert("بيانات غير صحيحة");
+  if(user.banned) return alert("الحساب محظور");
+
+  currentUser=user;
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("map").src = MAP_URL;
+  document.getElementById("welcome").innerText =
+    (lang==="ar" ? "مرحبًا " : "Welcome ") + user.username;
+}
+
+const mapImg = document.getElementById("map");
+mapImg.addEventListener("click", e => {
+  const r=mapImg.getBoundingClientRect();
+  clickPos={x:e.clientX-r.left, y:e.clientY-r.top};
+  document.getElementById("modal").style.display="flex";
+});
+
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+function savePin(){
+  const n=document.getElementById("name").value;
+  const i=document.getElementById("info").value;
+  pins.push({x:clickPos.x,y:clickPos.y,name:n,info:i});
+  renderPins();
+  closeModal();
+}
+
+function renderPins(){
+  document.querySelectorAll(".pin").forEach(p=>p.remove());
+  pins.forEach(p=>{
+    const d=document.createElement("div");
+    d.className="pin";
+    d.style.left=p.x+"px";
+    d.style.top=p.y+"px";
+    d.onclick=()=>alert(p.name+"\n"+p.info);
+    document.querySelector(".map-wrap").appendChild(d);
   });
+}
+</script>
 
-  await load("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0");
-  await load("https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix");
-  await load("https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js");
-
-  await faceapi.nets.tinyFaceDetector.loadFromUri(
-    "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/"
-  );
-  await faceapi.nets.ageGenderNet.loadFromUri(
-    "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/"
-  );
-
-  const video = document.querySelector("video");
-  const wrap = video.parentElement;
-  wrap.style.position = "relative";
-
-  const canvas = document.createElement("canvas");
-  Object.assign(canvas.style, {
-    position: "absolute", inset: 0, pointerEvents: "none"
-  });
-  wrap.appendChild(canvas);
-  const ctx = canvas.getContext("2d");
-
-  const ui = document.createElement("div");
-  ui.innerHTML = `
-    <style>
-      .hm-ui{position:absolute;top:8px;right:8px;z-index:9999;
-      background:#111;color:#fff;padding:8px;border-radius:10px;font:12px system-ui}
-      .hm-ui button,.hm-ui select{margin:4px}
-    </style>
-    <div class="hm-ui">
-      <button id="hmToggle">ON</button>
-      <select id="hmLevel">
-        <option value="strict">Strict</option>
-        <option value="smart" selected>Smart</option>
-        <option value="relaxed">Relaxed</option>
-      </select>
-    </div>`;
-  wrap.appendChild(ui);
-
-  let enabled = localStorage.getItem("hm_enabled") !== "0";
-  let level = localStorage.getItem("hm_level") || "smart";
-  document.getElementById("hmToggle").textContent = enabled ? "ON" : "OFF";
-  document.getElementById("hmLevel").value = level;
-
-  document.getElementById("hmToggle").onclick = () => {
-    enabled = !enabled;
-    localStorage.setItem("hm_enabled", enabled ? "1" : "0");
-    document.getElementById("hmToggle").textContent = enabled ? "ON" : "OFF";
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-  };
-  document.getElementById("hmLevel").onchange = e => {
-    level = e.target.value;
-    localStorage.setItem("hm_level", level);
-  };
-
-  const bodyNet = await bodyPix.load();
-  let frame = 0;
-
-  function resize() {
-    canvas.width = video.videoWidth || wrap.clientWidth;
-    canvas.height = video.videoHeight || wrap.clientHeight;
-  }
-  video.addEventListener("loadeddata", resize);
-  resize();
-
-  async function loop() {
-    requestAnimationFrame(loop);
-    if (!enabled) return;
-
-    frame++;
-    if (frame % 3 !== 0) return; // تحسين الأداء
-
-    resize();
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const dets = await faceapi
-      .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-      .withAgeAndGender();
-
-    for (const d of dets) {
-      const g = d.gender;
-      const p = d.genderProbability;
-
-      let blur = false;
-      if (level === "strict") blur = (g === "female") || (p < 0.85);
-      if (level === "smart")  blur = (g === "female") || (g === "male" && p < 0.80);
-      if (level === "relaxed")blur = (g === "female" && p > 0.70);
-
-      if (blur) {
-        const person = await bodyNet.segmentPerson(video);
-        bodyPix.drawBokehEffect(canvas, video, person, 35, 7, false);
-
-        const b = d.detection.box;
-        ctx.filter = "blur(40px)";
-        ctx.drawImage(video, b.x, b.y, b.width, b.height, b.x, b.y, b.width, b.height);
-        ctx.filter = "none";
-      }
-    }
-  }
-  loop();
-})();
+</body>
+</html>
