@@ -2,231 +2,174 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDT CIA</title>
+<title>Face Tracking + Smart Alarm</title>
 
 <style>
 body{
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:#0b0f14;
+  background:#000;
   color:#fff;
-}
-
-/* شعار عام في كل الموقع */
-.global-logo{
-  position:fixed;
-  top:10px;
-  left:10px;
-  z-index:9999;
-}
-.global-logo img{
-  width:70px;
-  opacity:0.9;
-}
-
-/* خلفية شعار خفيفة */
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:url("https://upload.wikimedia.org/wikipedia/commons/2/25/Seal_of_the_Central_Intelligence_Agency.svg") center/300px no-repeat;
-  opacity:0.05;
-  pointer-events:none;
-}
-
-.center{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-}
-
-.card{
-  background:#111823;
-  border:1px solid #1f2a3a;
-  border-radius:12px;
-  padding:20px;
-  width:320px;
-}
-
-.login-logo{
   text-align:center;
-  margin-bottom:15px;
-}
-.login-logo img{
-  width:120px;
+  font-family:Arial;
 }
 
-input,button{
-  width:100%;
-  padding:10px;
-  margin:8px 0;
-  border-radius:8px;
-  border:1px solid #2a3952;
-  background:#0f1623;
-  color:#fff;
+#wrap{
+  position:relative;
+  width:320px;
+  margin:auto;
 }
 
-button{cursor:pointer}
-
-.wrap{display:none}
-
-.top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px;
-  border-bottom:1px solid #1a2545;
+video, canvas{
+  width:320px;
+  border-radius:12px;
 }
 
-.map-wrap{position:relative}
-#map{
-  width:100%;
-  border-radius:10px;
-  border:1px solid #1f2a3a;
-}
-
-.pin{
+canvas{
   position:absolute;
-  transform:translate(-50%,-100%);
-  cursor:pointer;
+  top:0;
+  left:0;
 }
-.pin::after{content:"📍";font-size:24px}
 
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;
-  align-items:center;
-  justify-content:center;
+#status{
+  margin:10px;
+  padding:8px;
+  border-radius:8px;
+  background:green;
+}
+
+button{
+  padding:8px 16px;
+  border-radius:8px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- شعار في كل الموقع -->
-<div class="global-logo">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/2/25/Seal_of_the_Central_Intelligence_Agency.svg" alt="CIA">
+<h3>📷 تتبع الوجه </h3>
+<div id="status">🟢 لا يوجد وجه</div>
+<button id="start">تشغيل الكاميرا</button>
+
+<div id="wrap">
+  <video id="video" autoplay muted playsinline></video>
+  <canvas id="canvas"></canvas>
 </div>
 
-<!-- تسجيل الدخول -->
-<div id="login" class="center">
-  <div class="card">
-    <div class="login-logo">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/2/25/Seal_of_the_Central_Intelligence_Agency.svg" alt="CIA">
-    </div>
-    <h2 id="t_login">تسجيل الدخول</h2>
-    <input id="u" placeholder="اسم المستخدم">
-    <input id="p" type="password" placeholder="كلمة المرور">
-    <button onclick="login()">دخول</button>
-    <button onclick="toggleLang()">AR / EN</button>
-  </div>
-</div>
-
-<!-- التطبيق -->
-<div id="app" class="wrap">
-  <div class="top">
-    <b id="welcome"></b>
-    <button onclick="toggleLang()">AR / EN</button>
-  </div>
-
-  <div class="card">
-    <h3 id="t_map">الخريطة</h3>
-    <p><b>⬇ هنا رابط الخريطة ⬇</b></p>
-    <div class="map-wrap">
-      <img id="map">
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>المستخدمون</h3>
-    <p><b>⬇ هنا إضافة المستخدمين ⬇</b></p>
-  </div>
-</div>
-
-<!-- نافذة إضافة دبوس -->
-<div id="modal" class="modal">
-  <div class="card">
-    <h3>إضافة معلومة</h3>
-    <input id="name" placeholder="الاسم">
-    <input id="info" placeholder="المعلومات">
-    <button onclick="savePin()">حفظ</button>
-    <button onclick="closeModal()">إغلاق</button>
-  </div>
-</div>
+<!-- MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <script>
-/* ===============================
-   هنا إضافة المستخدمين
-================================= */
-const USERS=[
-  {username:"owner",password:"1234",role:"admin",banned:false},
-  {username:"user1",password:"1111",role:"user",banned:false}
-];
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const statusBox = document.getElementById("status");
 
-/* ===============================
-   هنا رابط الخريطة
-================================= */
-const MAP_URL="https://i.imgur.com/4NZ6uLY.jpeg";
+let smoothBox=null;
+let alarmCtx=null, oscillator=null;
+let alarmOn=false;
 
-let currentUser=null;
-let lang="ar";
-let pins=[], clickPos=null;
+const lerp=(a,b,t)=>a+(b-a)*t;
 
-function toggleLang(){
-  lang = lang==="ar" ? "en" : "ar";
-  document.getElementById("t_login").innerText = lang==="ar" ? "تسجيل الدخول" : "Login";
-  document.getElementById("t_map").innerText = lang==="ar" ? "الخريطة" : "Map";
+// 🔔 إنذار Web Audio
+function startAlarm(){
+  if(alarmOn) return;
+  alarmCtx = new (window.AudioContext || window.webkitAudioContext)();
+  oscillator = alarmCtx.createOscillator();
+  const gain = alarmCtx.createGain();
+
+  oscillator.type = "sawtooth"; // نغمة إنذار
+  oscillator.frequency.setValueAtTime(900, alarmCtx.currentTime);
+
+  gain.gain.setValueAtTime(0.05, alarmCtx.currentTime);
+
+  oscillator.connect(gain);
+  gain.connect(alarmCtx.destination);
+
+  oscillator.start();
+  alarmOn=true;
 }
 
-function login(){
-  const u = document.getElementById("u").value;
-  const p = document.getElementById("p").value;
-  const user = USERS.find(x=>x.username===u && x.password===p);
-  if(!user) return alert("بيانات غير صحيحة");
-  if(user.banned) return alert("الحساب محظور");
-
-  currentUser=user;
-  document.getElementById("login").style.display="none";
-  document.getElementById("app").style.display="block";
-  document.getElementById("map").src = MAP_URL;
-  document.getElementById("welcome").innerText =
-    (lang==="ar" ? "مرحبًا " : "Welcome ") + user.username;
+function stopAlarm(){
+  if(!alarmOn) return;
+  oscillator.stop();
+  alarmCtx.close();
+  alarmOn=false;
 }
 
-const mapImg = document.getElementById("map");
-mapImg.addEventListener("click", e => {
-  const r=mapImg.getBoundingClientRect();
-  clickPos={x:e.clientX-r.left, y:e.clientY-r.top};
-  document.getElementById("modal").style.display="flex";
+const faceDetection = new FaceDetection({
+  locateFile: f =>
+    `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${f}`
 });
 
-function closeModal(){
-  document.getElementById("modal").style.display="none";
-}
+faceDetection.setOptions({
+  model:"short",
+  minDetectionConfidence:0.6
+});
 
-function savePin(){
-  const n=document.getElementById("name").value;
-  const i=document.getElementById("info").value;
-  pins.push({x:clickPos.x,y:clickPos.y,name:n,info:i});
-  renderPins();
-  closeModal();
-}
+faceDetection.onResults(results=>{
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-function renderPins(){
-  document.querySelectorAll(".pin").forEach(p=>p.remove());
-  pins.forEach(p=>{
-    const d=document.createElement("div");
-    d.className="pin";
-    d.style.left=p.x+"px";
-    d.style.top=p.y+"px";
-    d.onclick=()=>alert(p.name+"\n"+p.info);
-    document.querySelector(".map-wrap").appendChild(d);
+  if(results.detections && results.detections.length){
+    const r = results.detections[0].boundingBox;
+
+    const box={
+      x:r.xCenter*canvas.width-(r.width*canvas.width)/2,
+      y:r.yCenter*canvas.height-(r.height*canvas.height)/2,
+      w:r.width*canvas.width,
+      h:r.height*canvas.height
+    };
+
+    if(!smoothBox) smoothBox={...box};
+    else{
+      smoothBox.x=lerp(smoothBox.x,box.x,0.3);
+      smoothBox.y=lerp(smoothBox.y,box.y,0.3);
+      smoothBox.w=lerp(smoothBox.w,box.w,0.3);
+      smoothBox.h=lerp(smoothBox.h,box.h,0.3);
+    }
+
+    ctx.strokeStyle="red";
+    ctx.lineWidth=3;
+    ctx.strokeRect(
+      smoothBox.x,
+      smoothBox.y,
+      smoothBox.w,
+      smoothBox.h
+    );
+
+    statusBox.textContent="🔴 وجه مكتشف";
+    statusBox.style.background="red";
+    startAlarm();
+
+  } else {
+    smoothBox=null;
+    statusBox.textContent="🟢 لا يوجد وجه";
+    statusBox.style.background="green";
+    stopAlarm();
+  }
+});
+
+document.getElementById("start").onclick = async ()=>{
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:"user"},
+    audio:false
   });
-}
+
+  video.srcObject=stream;
+  await video.play();
+
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
+
+  const camera=new Camera(video,{
+    onFrame:async()=>{
+      await faceDetection.send({image:video});
+    },
+    width:canvas.width,
+    height:canvas.height
+  });
+
+  camera.start();
+};
 </script>
 
 </body>
