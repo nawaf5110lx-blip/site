@@ -2,174 +2,182 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>Face Tracking + Smart Alarm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precision Radar</title>
 
 <style>
-body{
-  background:#000;
-  color:#fff;
-  text-align:center;
-  font-family:Arial;
+body {
+  margin: 0;
+  background: #030703;
+  color: #7CFF9A;
+  font-family: monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
 
-#wrap{
-  position:relative;
-  width:320px;
-  margin:auto;
+.radar {
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  position: relative;
+  background:
+    radial-gradient(circle at center, rgba(124,255,154,0.18), transparent 60%),
+    repeating-radial-gradient(circle at center, transparent 0, transparent 38px, rgba(124,255,154,0.25) 39px);
+  border: 2px solid #7CFF9A;
+  box-shadow: 0 0 40px rgba(124,255,154,.35);
+  overflow: hidden;
 }
 
-video, canvas{
-  width:320px;
-  border-radius:12px;
+.radar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(#1aff5a22 1px, transparent 1px),
+    linear-gradient(90deg, #1aff5a22 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
-canvas{
-  position:absolute;
-  top:0;
-  left:0;
+.sweep {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(124,255,154,.55), transparent 75%);
+  left: 50%;
+  top: 0;
+  transform-origin: left center;
+  animation: sweep 4s linear infinite;
 }
 
-#status{
-  margin:10px;
-  padding:8px;
-  border-radius:8px;
-  background:green;
+@keyframes sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-button{
-  padding:8px 16px;
-  border-radius:8px;
+.target {
+  width: 10px;
+  height: 10px;
+  background: red;
+  border-radius: 50%;
+  position: absolute;
+  box-shadow: 0 0 14px red;
+  display: none;
+}
+
+.panel {
+  margin-top: 8px;
+  border: 1px solid #7CFF9A;
+  padding: 8px 12px;
+  width: 320px;
+  text-align: center;
+}
+button {
+  margin-top: 6px;
+  background: transparent;
+  color: #7CFF9A;
+  border: 1px solid #7CFF9A;
+  padding: 4px 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h3>📷 تتبع الوجه </h3>
-<div id="status">🟢 لا يوجد وجه</div>
-<button id="start">تشغيل الكاميرا</button>
-
-<div id="wrap">
-  <video id="video" autoplay muted playsinline></video>
-  <canvas id="canvas"></canvas>
+<div class="radar" id="radar">
+  <div class="sweep"></div>
+  <div class="target" id="target"></div>
 </div>
 
-<!-- MediaPipe -->
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<div class="panel" id="liveCoords">
+  Waiting for location…
+</div>
+
+<div class="panel">
+  <div id="lastCoords">آخر موقع: —</div>
+  <button onclick="copyLast()">نسخ الإحداثيات</button>
+</div>
+
+<!-- 🔊 صوت رادار سينمائي -->
+<audio id="radarSound">
+  <source src="data:audio/wav;base64,UklGRlAAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YUwAAAAA////////////////////////">
+</audio>
 
 <script>
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const statusBox = document.getElementById("status");
+const radar = document.getElementById("radar");
+const target = document.getElementById("target");
+const liveBox = document.getElementById("liveCoords");
+const lastBox = document.getElementById("lastCoords");
+const radarSound = document.getElementById("radarSound");
 
-let smoothBox=null;
-let alarmCtx=null, oscillator=null;
-let alarmOn=false;
+let lastLat = null;
+let lastLon = null;
+let savedCoords = "";
 
-const lerp=(a,b,t)=>a+(b-a)*t;
+// 🔊 صوت رادار عالي (سينما)
+radarSound.volume = 0.55;
+setInterval(() => {
+  radarSound.currentTime = 0;
+  radarSound.play();
+}, 4000);
 
-// 🔔 إنذار Web Audio
-function startAlarm(){
-  if(alarmOn) return;
-  alarmCtx = new (window.AudioContext || window.webkitAudioContext)();
-  oscillator = alarmCtx.createOscillator();
-  const gain = alarmCtx.createGain();
+function moveTarget(lat, lon) {
+  const r = radar.clientWidth / 2;
+  const dx = (lon - lastLon) * 50000;
+  const dy = (lat - lastLat) * -50000;
 
-  oscillator.type = "sawtooth"; // نغمة إنذار
-  oscillator.frequency.setValueAtTime(900, alarmCtx.currentTime);
+  let x = r + dx;
+  let y = r + dy;
 
-  gain.gain.setValueAtTime(0.05, alarmCtx.currentTime);
+  x = Math.max(10, Math.min(310, x));
+  y = Math.max(10, Math.min(310, y));
 
-  oscillator.connect(gain);
-  gain.connect(alarmCtx.destination);
-
-  oscillator.start();
-  alarmOn=true;
+  target.style.left = `${x}px`;
+  target.style.top = `${y}px`;
+  target.style.display = "block";
 }
 
-function stopAlarm(){
-  if(!alarmOn) return;
-  oscillator.stop();
-  alarmCtx.close();
-  alarmOn=false;
-}
-
-const faceDetection = new FaceDetection({
-  locateFile: f =>
-    `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${f}`
-});
-
-faceDetection.setOptions({
-  model:"short",
-  minDetectionConfidence:0.6
-});
-
-faceDetection.onResults(results=>{
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  if(results.detections && results.detections.length){
-    const r = results.detections[0].boundingBox;
-
-    const box={
-      x:r.xCenter*canvas.width-(r.width*canvas.width)/2,
-      y:r.yCenter*canvas.height-(r.height*canvas.height)/2,
-      w:r.width*canvas.width,
-      h:r.height*canvas.height
-    };
-
-    if(!smoothBox) smoothBox={...box};
-    else{
-      smoothBox.x=lerp(smoothBox.x,box.x,0.3);
-      smoothBox.y=lerp(smoothBox.y,box.y,0.3);
-      smoothBox.w=lerp(smoothBox.w,box.w,0.3);
-      smoothBox.h=lerp(smoothBox.h,box.h,0.3);
-    }
-
-    ctx.strokeStyle="red";
-    ctx.lineWidth=3;
-    ctx.strokeRect(
-      smoothBox.x,
-      smoothBox.y,
-      smoothBox.w,
-      smoothBox.h
-    );
-
-    statusBox.textContent="🔴 وجه مكتشف";
-    statusBox.style.background="red";
-    startAlarm();
-
-  } else {
-    smoothBox=null;
-    statusBox.textContent="🟢 لا يوجد وجه";
-    statusBox.style.background="green";
-    stopAlarm();
+function copyLast() {
+  if (savedCoords) {
+    navigator.clipboard.writeText(savedCoords);
+    alert("تم نسخ الإحداثيات");
   }
-});
+}
 
-document.getElementById("start").onclick = async ()=>{
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video:{facingMode:"user"},
-    audio:false
-  });
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(
+    pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const acc = pos.coords.accuracy.toFixed(1);
 
-  video.srcObject=stream;
-  await video.play();
+      liveBox.innerHTML = `
+        Latitude: ${lat.toFixed(6)}<br>
+        Longitude: ${lon.toFixed(6)}<br>
+        Accuracy: ±${acc} m
+      `;
 
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
+      if (lastLat !== null && (lat !== lastLat || lon !== lastLon)) {
+        moveTarget(lat, lon);
+        savedCoords = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+        lastBox.innerText = `آخر موقع: ${savedCoords}`;
+      }
 
-  const camera=new Camera(video,{
-    onFrame:async()=>{
-      await faceDetection.send({image:video});
+      lastLat = lat;
+      lastLon = lon;
     },
-    width:canvas.width,
-    height:canvas.height
-  });
-
-  camera.start();
-};
+    () => {
+      liveBox.innerText = "Location permission denied";
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000
+    }
+  );
+}
 </script>
 
 </body>
