@@ -16,8 +16,17 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
+  overflow: hidden;
 }
 
+/* خلفية الأرقام المتحركة */
+#binaryBg{
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+/* ===== الرادار ===== */
 .radar {
   width: 320px;
   height: 320px;
@@ -86,6 +95,9 @@ button {
 
 <body>
 
+<!-- خلفية متحركة -->
+<canvas id="binaryBg"></canvas>
+
 <div class="radar" id="radar">
   <div class="sweep"></div>
   <div class="target" id="target"></div>
@@ -100,12 +112,44 @@ button {
   <button onclick="copyLast()">نسخ الإحداثيات</button>
 </div>
 
-<!-- 🔊 صوت رادار سينمائي -->
+<!-- 🔊 صوت رادار -->
 <audio id="radarSound">
   <source src="data:audio/wav;base64,UklGRlAAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YUwAAAAA////////////////////////">
 </audio>
 
 <script>
+/* ===== خلفية الأرقام ===== */
+const bg = document.getElementById("binaryBg");
+const ctx = bg.getContext("2d");
+
+function resizeBg(){
+  bg.width = innerWidth;
+  bg.height = innerHeight;
+}
+resizeBg();
+addEventListener("resize", resizeBg);
+
+const chars = "10010100111000";
+const size = 14;
+const cols = Math.floor(bg.width / size);
+const drops = Array(cols).fill(1);
+
+setInterval(()=>{
+  ctx.fillStyle = "rgba(0,0,0,0.08)";
+  ctx.fillRect(0,0,bg.width,bg.height);
+
+  ctx.fillStyle = "rgba(124,255,154,0.25)";
+  ctx.font = size + "px monospace";
+
+  for(let i=0;i<drops.length;i++){
+    const t = chars[Math.floor(Math.random()*chars.length)];
+    ctx.fillText(t, i*size, drops[i]*size);
+    if(drops[i]*size > bg.height && Math.random() > 0.98) drops[i]=0;
+    drops[i]++;
+  }
+},55);
+
+/* ===== الرادار + الموقع ===== */
 const radar = document.getElementById("radar");
 const target = document.getElementById("target");
 const liveBox = document.getElementById("liveCoords");
@@ -116,7 +160,6 @@ let lastLat = null;
 let lastLon = null;
 let savedCoords = "";
 
-// 🔊 صوت رادار عالي (سينما)
 radarSound.volume = 0.55;
 setInterval(() => {
   radarSound.currentTime = 0;
