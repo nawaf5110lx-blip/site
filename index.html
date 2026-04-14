@@ -7,7 +7,7 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
 
 body{
   min-height:100vh;
@@ -19,7 +19,7 @@ body{
 .container{max-width:950px;margin:auto}
 
 .card{
-  background:rgba(255,255,255,.82);
+  background:rgba(255,255,255,.9);
   border-radius:28px;
   padding:22px;
   box-shadow:0 20px 60px rgba(0,0,0,.2);
@@ -29,49 +29,43 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:16px;
   margin-bottom:18px;
 }
 
 .brand{
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:12px;
 }
 
 .keeta-logo{
-  width:120px;
+  width:100px;
   height:60px;
   object-fit:contain;
-  border-radius:16px;
   background:#fff;
-  padding:8px 12px;
+  border-radius:14px;
+  padding:6px;
 }
 
-.actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
+.actions{display:flex;gap:10px}
 
 button{
   border:none;
-  border-radius:16px;
-  padding:14px 18px;
+  border-radius:14px;
+  padding:12px 16px;
   font-weight:bold;
   cursor:pointer;
 }
 
-.main-btn{background:#ffd800;color:#111}
+.main-btn{background:#ffd800}
 .sec-btn{background:#17d3b5;color:#fff}
 
 .camera-wrap{
   position:relative;
-  width:100%;
-  min-height:360px;
-  border-radius:24px;
+  border-radius:20px;
   overflow:hidden;
   background:#000;
+  min-height:340px;
 }
 
 #reader{width:100%}
@@ -83,26 +77,23 @@ button{
   width:280px;height:180px;
   border:3px solid #fff;
   border-radius:18px;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.35);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.4);
 }
 
-.status{text-align:center;margin-top:16px}
+.status{text-align:center;margin-top:12px}
 
 .box{
-  margin-top:22px;
-  background:rgba(255,255,255,.6);
-  border-radius:22px;
-  padding:20px;
+  margin-top:20px;
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
 }
 
 #productImage{
-  width:240px;
-  max-width:100%;
+  width:220px;
   display:none;
-  margin:18px auto 0;
-  border-radius:18px;
-  background:#fff;
-  padding:10px;
+  margin:10px auto;
+  border-radius:12px;
 }
 </style>
 </head>
@@ -114,12 +105,8 @@ button{
 
 <div class="header">
   <div class="brand">
-    <!-- ✅ الشعار الجديد -->
     <img src="https://img-ap-hongkong.mykeeta.net/sailorfempcpublic/keeta_icon.png" class="keeta-logo">
-    <div>
-      <h1>Keeta Scanner</h1>
-      <p>ماسح باركود ذكي</p>
-    </div>
+    <h2>Keeta Scanner</h2>
   </div>
 
   <div class="actions">
@@ -134,52 +121,66 @@ button{
   <div class="scan-box"></div>
 </div>
 
-<div class="status" id="statusText">اضغط تشغيل الكاميرا</div>
+<div class="status" id="statusText">اضغط تشغيل</div>
 
 <div class="box">
-  <p>الباركود: <span id="barcodeText">—</span></p>
-  <p>اسم المنتج: <span id="productName">—</span></p>
-  <p>السعر: <span id="priceText">—</span></p>
-  <p>الدولة: <span id="countryText">—</span></p>
-  <img id="productImage">
+<p>الباركود: <span id="barcodeText">—</span></p>
+<p>الاسم: <span id="productName">—</span></p>
+<p>السعر: <span id="priceText">—</span></p>
+<p>الدولة: <span id="countryText">—</span></p>
+<img id="productImage">
 </div>
 
 </div>
 </div>
 
-<!-- ✅ صوت طوط أقوى -->
-<audio id="beep">
-  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_115b9b1a2c.mp3">
+<!-- 🔊 صوت شغال فعلي -->
+<audio id="beep" preload="auto">
+<source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_115b9b1a2c.mp3">
 </audio>
 
 <script>
 let scanner=null;
 let flashOn=false;
+let audioEnabled=false;
 
 function updateStatus(t){
   document.getElementById("statusText").innerText=t;
 }
 
-function playBeep(){
-  let a=document.getElementById("beep");
-  a.currentTime=0;
-  a.play();
+function enableAudio(){
+  const audio=document.getElementById("beep");
+  audio.play().then(()=>{
+    audio.pause();
+    audio.currentTime=0;
+    audioEnabled=true;
+  }).catch(()=>{});
+}
+
+async function playBeep(){
+  try{
+    const audio=document.getElementById("beep");
+    audio.currentTime=0;
+    await audio.play();
+  }catch(e){}
 }
 
 async function startScanner(){
+  enableAudio(); // 🔥 حل مشكلة الصوت
+
   scanner=new Html5Qrcode("reader");
 
   await scanner.start(
     {facingMode:"environment"},
-    {fps:30,qrbox:{width:280,height:180}},
-    async (text)=>{
+    {fps:30, qrbox:{width:280,height:180}},
+    async(text)=>{
       document.getElementById("barcodeText").innerText=text;
       playBeep();
       fetchProduct(text);
     }
   );
 
-  updateStatus("وجّه الكاميرا على الباركود");
+  updateStatus("وجّه الكاميرا");
 }
 
 async function stopScanner(){
@@ -212,26 +213,24 @@ async function fetchProduct(code){
     if(data.status==1){
       let p=data.product;
 
-      document.getElementById("productName").innerText=p.product_name || "غير متوفر";
+      document.getElementById("productName").innerText=p.product_name || "غير معروف";
       document.getElementById("countryText").innerText=p.countries || "—";
 
-      // ✅ السعر (إذا متوفر)
       document.getElementById("priceText").innerText=
         p.price || p.price_per_unit || "غير متوفر";
 
-      // ✅ الصورة
       let img=document.getElementById("productImage");
       img.src=p.image_front_url || p.image_url || "";
       img.style.display="block";
 
-      updateStatus("تم العثور على المنتج");
+      updateStatus("تم التعرف");
 
     }else{
-      updateStatus("المنتج غير موجود");
+      updateStatus("غير موجود");
     }
 
   }catch(e){
-    updateStatus("خطأ في الاتصال");
+    updateStatus("خطأ");
   }
 }
 </script>
