@@ -1,226 +1,476 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Precision Radar</title>
+<title>Keeta Scanner</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-body {
-  margin: 0;
-  background: #030703;
-  color: #7CFF9A;
-  font-family: monospace;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  overflow: hidden;
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial,sans-serif;
 }
 
-/* خلفية الأرقام المتحركة */
-#binaryBg{
-  position: fixed;
-  inset: 0;
-  z-index: -1;
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#ffd800,#ffe600,#17d3b5);
+  color:#111;
+  padding:18px;
 }
 
-/* ===== الرادار ===== */
-.radar {
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  position: relative;
-  background:
-    radial-gradient(circle at center, rgba(124,255,154,0.18), transparent 60%),
-    repeating-radial-gradient(circle at center, transparent 0, transparent 38px, rgba(124,255,154,0.25) 39px);
-  border: 2px solid #7CFF9A;
-  box-shadow: 0 0 40px rgba(124,255,154,.35);
-  overflow: hidden;
+.container{
+  max-width:950px;
+  margin:auto;
 }
 
-.radar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(#1aff5a22 1px, transparent 1px),
-    linear-gradient(90deg, #1aff5a22 1px, transparent 1px);
-  background-size: 40px 40px;
+.card{
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(255,255,255,.35);
+  backdrop-filter:blur(18px);
+  border-radius:28px;
+  padding:22px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
 }
 
-.sweep {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(to right, rgba(124,255,154,.55), transparent 75%);
-  left: 50%;
-  top: 0;
-  transform-origin: left center;
-  animation: sweep 4s linear infinite;
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-bottom:18px;
 }
 
-@keyframes sweep {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
 }
 
-.target {
-  width: 10px;
-  height: 10px;
-  background: red;
-  border-radius: 50%;
-  position: absolute;
-  box-shadow: 0 0 14px red;
-  display: none;
+.keeta-logo{
+  width:72px;
+  height:72px;
+  object-fit:contain;
+  border-radius:18px;
+  background:#fff;
+  padding:6px;
 }
 
-.panel {
-  margin-top: 8px;
-  border: 1px solid #7CFF9A;
-  padding: 8px 12px;
-  width: 320px;
-  text-align: center;
+h1{
+  font-size:28px;
 }
-button {
-  margin-top: 6px;
-  background: transparent;
-  color: #7CFF9A;
-  border: 1px solid #7CFF9A;
-  padding: 4px 10px;
+
+.sub{
+  font-size:14px;
+  color:#111;
+  margin-top:4px;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+button{
+  border:none;
+  border-radius:16px;
+  padding:14px 18px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.main-btn{
+  background:#ffd800;
+  color:#111;
+}
+
+.sec-btn{
+  background:#17d3b5;
+  color:#fff;
+}
+
+.camera-wrap{
+  position:relative;
+  width:100%;
+  min-height:360px;
+  border-radius:24px;
+  overflow:hidden;
+  background:#000;
+  border:2px solid rgba(255,255,255,.15);
+}
+
+#reader{
+  width:100%;
+  min-height:360px;
+}
+
+.scan-overlay{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.scan-box{
+  width:280px;
+  height:180px;
+  border:3px solid #fff;
+  border-radius:18px;
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.35),
+    0 0 25px rgba(255,255,255,.4);
+}
+
+.scan-line{
+  position:absolute;
+  width:260px;
+  height:3px;
+  background:#00ff99;
+  box-shadow:0 0 12px #00ff99;
+  animation:scanMove 2s linear infinite;
+}
+
+@keyframes scanMove{
+  0%{transform:translateY(-75px)}
+  50%{transform:translateY(75px)}
+  100%{transform:translateY(-75px)}
+}
+
+.status{
+  text-align:center;
+  margin-top:16px;
+  color:#111;
+}
+
+.box{
+  margin-top:22px;
+  background:rgba(255,255,255,.55);
+  border-radius:22px;
+  padding:20px;
+}
+
+.row{
+  margin:10px 0;
+  line-height:1.9;
+}
+
+.label{
+  font-weight:bold;
+  color:#111;
+}
+
+#productImage{
+  width:240px;
+  max-width:100%;
+  display:none;
+  margin:18px auto 0;
+  border-radius:18px;
+  background:#fff;
+  padding:10px;
+}
+
+.history h2{
+  margin-bottom:14px;
+}
+
+.item{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  background:rgba(255,255,255,.65);
+  border-radius:18px;
+  padding:12px;
+  margin-bottom:12px;
+}
+
+.item img{
+  width:80px;
+  height:80px;
+  object-fit:contain;
+  background:#fff;
+  padding:6px;
+  border-radius:14px;
+}
+
+.small{
+  font-size:14px;
+  color:#111;
+}
+
+@media(max-width:700px){
+  .header{
+    flex-direction:column;
+    align-items:flex-start;
+  }
 }
 </style>
 </head>
-
 <body>
 
-<!-- خلفية متحركة -->
-<canvas id="binaryBg"></canvas>
+<div class="container">
+  <div class="card">
 
-<div class="radar" id="radar">
-  <div class="sweep"></div>
-  <div class="target" id="target"></div>
+    <div class="header">
+      <div class="brand">
+        <img src="https://i.imgur.com/5jQkX6M.png" alt="Keeta" class="keeta-logo">
+        <div>
+          <h1>Keeta Scanner</h1>
+          <p class="sub">ماسح ذكي للباركود مع صوت وفلاش اختياري</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="main-btn" onclick="startScanner()">تشغيل الكاميرا</button>
+        <button class="sec-btn" onclick="stopScanner()">إيقاف</button>
+        <button class="sec-btn" onclick="toggleFlash()">تشغيل / إيقاف الفلاش</button>
+      </div>
+    </div>
+
+    <div class="camera-wrap">
+      <div id="reader"></div>
+
+      <div class="scan-overlay">
+        <div class="scan-box"></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+
+    <div class="status" id="statusText">اضغط تشغيل الكاميرا</div>
+
+    <div class="box">
+      <div class="row"><span class="label">الباركود:</span> <span id="barcodeText">—</span></div>
+      <div class="row"><span class="label">اسم المنتج:</span> <span id="productName">—</span></div>
+      <div class="row"><span class="label">السعر:</span> <span id="priceText">—</span></div>
+      <div class="row"><span class="label">بلد المنشأ:</span> <span id="countryText">—</span></div>
+      <img id="productImage" alt="صورة المنتج">
+    </div>
+
+    <div class="box history">
+      <h2>سجل المنتجات</h2>
+      <div id="historyList"></div>
+    </div>
+
+  </div>
 </div>
 
-<div class="panel" id="liveCoords">
-  Waiting for location…
-</div>
-
-<div class="panel">
-  <div id="lastCoords">آخر موقع: —</div>
-  <button onclick="copyLast()">نسخ الإحداثيات</button>
-</div>
-
-<!-- 🔊 صوت رادار -->
-<audio id="radarSound">
-  <source src="data:audio/wav;base64,UklGRlAAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YUwAAAAA////////////////////////">
+<audio id="beep" preload="auto">
+  <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-/* ===== خلفية الأرقام ===== */
-const bg = document.getElementById("binaryBg");
-const ctx = bg.getContext("2d");
+let scanner = null;
+let scanCooldown = false;
+let lastScanned = null;
+let flashOn = false;
 
-function resizeBg(){
-  bg.width = innerWidth;
-  bg.height = innerHeight;
+function updateStatus(text){
+  document.getElementById("statusText").innerText = text;
 }
-resizeBg();
-addEventListener("resize", resizeBg);
 
-const chars = "10010100111000";
-const size = 14;
-const cols = Math.floor(bg.width / size);
-const drops = Array(cols).fill(1);
+async function playBeep(){
+  try{
+    const audio = document.getElementById("beep");
+    audio.currentTime = 0;
+    await audio.play();
+  }catch(e){}
+}
 
-setInterval(()=>{
-  ctx.fillStyle = "rgba(0,0,0,0.08)";
-  ctx.fillRect(0,0,bg.width,bg.height);
+function loadHistory(){
+  const history = JSON.parse(localStorage.getItem("keetaHistory")) || [];
+  const list = document.getElementById("historyList");
 
-  ctx.fillStyle = "rgba(124,255,154,0.25)";
-  ctx.font = size + "px monospace";
+  list.innerHTML = "";
 
-  for(let i=0;i<drops.length;i++){
-    const t = chars[Math.floor(Math.random()*chars.length)];
-    ctx.fillText(t, i*size, drops[i]*size);
-    if(drops[i]*size > bg.height && Math.random() > 0.98) drops[i]=0;
-    drops[i]++;
+  if(!history.length){
+    list.innerHTML = '<p class="small">لا يوجد منتجات محفوظة</p>';
+    return;
   }
-},55);
 
-/* ===== الرادار + الموقع ===== */
-const radar = document.getElementById("radar");
-const target = document.getElementById("target");
-const liveBox = document.getElementById("liveCoords");
-const lastBox = document.getElementById("lastCoords");
-const radarSound = document.getElementById("radarSound");
-
-let lastLat = null;
-let lastLon = null;
-let savedCoords = "";
-
-radarSound.volume = 0.55;
-setInterval(() => {
-  radarSound.currentTime = 0;
-  radarSound.play();
-}, 4000);
-
-function moveTarget(lat, lon) {
-  const r = radar.clientWidth / 2;
-  const dx = (lon - lastLon) * 50000;
-  const dy = (lat - lastLat) * -50000;
-
-  let x = r + dx;
-  let y = r + dy;
-
-  x = Math.max(10, Math.min(310, x));
-  y = Math.max(10, Math.min(310, y));
-
-  target.style.left = `${x}px`;
-  target.style.top = `${y}px`;
-  target.style.display = "block";
+  history.forEach(item => {
+    list.innerHTML += `
+      <div class="item">
+        <img src="${item.image || ''}" onerror="this.style.display='none'">
+        <div>
+          <div>${item.name || "منتج غير معروف"}</div>
+          <div class="small">${item.price || "غير متوفر"}</div>
+          <div class="small">${item.country || "غير متوفر"}</div>
+        </div>
+      </div>
+    `;
+  });
 }
 
-function copyLast() {
-  if (savedCoords) {
-    navigator.clipboard.writeText(savedCoords);
-    alert("تم نسخ الإحداثيات");
+function saveToHistory(product){
+  let history = JSON.parse(localStorage.getItem("keetaHistory")) || [];
+
+  if(!history.some(item => item.code === product.code)){
+    history.unshift(product);
+    history = history.slice(0,50);
+    localStorage.setItem("keetaHistory", JSON.stringify(history));
+    loadHistory();
   }
 }
 
-if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(
-    pos => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      const acc = pos.coords.accuracy.toFixed(1);
+async function startScanner(){
+  try{
+    updateStatus("جاري تشغيل الكاميرا...");
 
-      liveBox.innerHTML = `
-        Latitude: ${lat.toFixed(6)}<br>
-        Longitude: ${lon.toFixed(6)}<br>
-        Accuracy: ±${acc} m
-      `;
-
-      if (lastLat !== null && (lat !== lastLat || lon !== lastLon)) {
-        moveTarget(lat, lon);
-        savedCoords = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-        lastBox.innerText = `آخر موقع: ${savedCoords}`;
-      }
-
-      lastLat = lat;
-      lastLon = lon;
-    },
-    () => {
-      liveBox.innerText = "Location permission denied";
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 10000
+    if(scanner){
+      await scanner.stop().catch(() => {});
+      await scanner.clear().catch(() => {});
     }
-  );
+
+    scanner = new Html5Qrcode("reader", {
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.CODE_93,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.ITF,
+        Html5QrcodeSupportedFormats.DATA_MATRIX,
+        Html5QrcodeSupportedFormats.PDF_417
+      ],
+      verbose: false
+    });
+
+    await scanner.start(
+      { facingMode: "environment" },
+      {
+        fps: 30,
+        qrbox: { width: 280, height: 180 },
+        aspectRatio: 1.777,
+        disableFlip: false,
+        rememberLastUsedCamera: true,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        },
+        videoConstraints: {
+          facingMode: "environment",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      },
+
+      async (decodedText) => {
+        if(scanCooldown || decodedText === lastScanned) return;
+
+        scanCooldown = true;
+        lastScanned = decodedText;
+
+        document.getElementById("barcodeText").innerText = decodedText;
+
+        await playBeep();
+
+        if(navigator.vibrate){
+          navigator.vibrate([100, 50, 100]);
+        }
+
+        await fetchProduct(decodedText);
+
+        setTimeout(() => {
+          scanCooldown = false;
+        }, 1000);
+      },
+
+      () => {}
+    );
+
+    updateStatus("ضع الباركود داخل الإطار الأبيض");
+
+  }catch(err){
+    console.error(err);
+    updateStatus("تعذر تشغيل الكاميرا — ارفع الملف على GitHub Pages أو HTTPS");
+  }
 }
+
+async function stopScanner(){
+  try{
+    if(scanner){
+      await scanner.stop();
+      await scanner.clear();
+      scanner = null;
+      updateStatus("تم إيقاف الكاميرا");
+    }
+  }catch(e){}
+}
+
+async function toggleFlash(){
+  try{
+    if(!scanner) return;
+
+    flashOn = !flashOn;
+
+    await scanner.applyVideoConstraints({
+      advanced: [{ torch: flashOn }]
+    });
+
+    updateStatus(flashOn ? "تم تشغيل الفلاش" : "تم إيقاف الفلاش");
+  }catch(e){
+    updateStatus("الفلاش غير مدعوم على هذا الجهاز");
+  }
+}
+
+async function fetchProduct(code){
+  updateStatus("جاري البحث عن المنتج...");
+
+  try{
+    const response = await fetch(
+      `https://world.openfoodfacts.org/api/v0/product/${code}.json`
+    );
+
+    const data = await response.json();
+
+    if(data.status === 1){
+      const p = data.product;
+
+      const product = {
+        code,
+        name: p.product_name || "غير متوفر",
+        price: "غير متوفر",
+        country: p.countries || "غير متوفر",
+        image: p.image_front_url || p.image_url || ""
+      };
+
+      showProduct(product);
+      updateStatus("تم العثور على المنتج");
+
+    }else{
+      updateStatus("لم يتم العثور على المنتج");
+    }
+
+  }catch(error){
+    console.error(error);
+    updateStatus("حدث خطأ أثناء جلب البيانات");
+  }
+}
+
+function showProduct(product){
+  document.getElementById("productName").innerText = product.name || "—";
+  document.getElementById("priceText").innerText = product.price || "—";
+  document.getElementById("countryText").innerText = product.country || "—";
+
+  const img = document.getElementById("productImage");
+
+  if(product.image){
+    img.src = product.image;
+    img.style.display = "block";
+  }else{
+    img.style.display = "none";
+  }
+
+  saveToHistory(product);
+}
+
+loadHistory();
 </script>
 
 </body>
