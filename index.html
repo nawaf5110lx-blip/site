@@ -10,51 +10,43 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
 
 body{
-  min-height:100vh;
   background:linear-gradient(135deg,#ffd800,#ffe600,#17d3b5);
-  color:#111;
   padding:18px;
+  color:#111;
 }
 
-.container{max-width:950px;margin:auto}
+.container{max-width:900px;margin:auto}
 
 .card{
-  background:rgba(255,255,255,.9);
-  border-radius:28px;
-  padding:22px;
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  background:#fff;
+  border-radius:25px;
+  padding:20px;
 }
 
 .header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:18px;
 }
 
 .brand{
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:10px;
 }
 
 .keeta-logo{
-  width:100px;
-  height:60px;
-  object-fit:contain;
-  background:#fff;
-  border-radius:14px;
-  padding:6px;
+  width:90px;
 }
 
 .actions{display:flex;gap:10px}
 
 button{
   border:none;
-  border-radius:14px;
-  padding:12px 16px;
-  font-weight:bold;
+  padding:12px;
+  border-radius:12px;
   cursor:pointer;
+  font-weight:bold;
 }
 
 .main-btn{background:#ffd800}
@@ -62,38 +54,35 @@ button{
 
 .camera-wrap{
   position:relative;
+  margin-top:15px;
+  background:#000;
   border-radius:20px;
   overflow:hidden;
-  background:#000;
-  min-height:340px;
 }
-
-#reader{width:100%}
 
 .scan-box{
   position:absolute;
   top:50%;left:50%;
   transform:translate(-50%,-50%);
-  width:280px;height:180px;
+  width:260px;height:160px;
   border:3px solid #fff;
-  border-radius:18px;
+  border-radius:15px;
   box-shadow:0 0 0 9999px rgba(0,0,0,.4);
 }
 
-.status{text-align:center;margin-top:12px}
+.status{text-align:center;margin-top:10px}
 
 .box{
   margin-top:20px;
-  background:#fff;
-  border-radius:18px;
-  padding:16px;
+  background:#f5f5f5;
+  padding:15px;
+  border-radius:15px;
 }
 
 #productImage{
-  width:220px;
+  width:200px;
   display:none;
   margin:10px auto;
-  border-radius:12px;
 }
 </style>
 </head>
@@ -121,66 +110,64 @@ button{
   <div class="scan-box"></div>
 </div>
 
-<div class="status" id="statusText">اضغط تشغيل</div>
+<div class="status" id="status">اضغط تشغيل</div>
 
 <div class="box">
-<p>الباركود: <span id="barcodeText">—</span></p>
-<p>الاسم: <span id="productName">—</span></p>
-<p>السعر: <span id="priceText">—</span></p>
-<p>الدولة: <span id="countryText">—</span></p>
+<p>الباركود: <span id="code">—</span></p>
+<p>الاسم: <span id="name">—</span></p>
+<p>السعر: <span id="price">—</span></p>
+<p>الدولة: <span id="country">—</span></p>
 <img id="productImage">
 </div>
 
 </div>
 </div>
 
-<!-- 🔊 صوت شغال فعلي -->
-<audio id="beep" preload="auto">
-<source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_115b9b1a2c.mp3">
-</audio>
-
 <script>
 let scanner=null;
-let flashOn=false;
-let audioEnabled=false;
+let flash=false;
+let audioCtx=null;
 
-function updateStatus(t){
-  document.getElementById("statusText").innerText=t;
-}
-
-function enableAudio(){
-  const audio=document.getElementById("beep");
-  audio.play().then(()=>{
-    audio.pause();
-    audio.currentTime=0;
-    audioEnabled=true;
-  }).catch(()=>{});
-}
-
-async function playBeep(){
+// 🔊 صوت مضمون 100%
+function beep(){
   try{
-    const audio=document.getElementById("beep");
-    audio.currentTime=0;
-    await audio.play();
+    if(!audioCtx){
+      audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    }
+
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+
+    osc.type="square";
+    osc.frequency.setValueAtTime(900,audioCtx.currentTime);
+
+    gain.gain.setValueAtTime(1,audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.2);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime+0.2);
+
   }catch(e){}
 }
 
 async function startScanner(){
-  enableAudio(); // 🔥 حل مشكلة الصوت
+  // 🔥 تفعيل الصوت
+  if(!audioCtx){
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  }
 
   scanner=new Html5Qrcode("reader");
 
   await scanner.start(
     {facingMode:"environment"},
-    {fps:30, qrbox:{width:280,height:180}},
-    async(text)=>{
-      document.getElementById("barcodeText").innerText=text;
-      playBeep();
-      fetchProduct(text);
-    }
+    {fps:30,qrbox:{width:260,height:160}},
+    onScan
   );
 
-  updateStatus("وجّه الكاميرا");
+  document.getElementById("status").innerText="وجّه الكاميرا";
 }
 
 async function stopScanner(){
@@ -193,18 +180,26 @@ async function stopScanner(){
 async function toggleFlash(){
   if(!scanner) return;
 
-  flashOn=!flashOn;
+  flash=!flash;
   try{
     await scanner.applyVideoConstraints({
-      advanced:[{torch:flashOn}]
+      advanced:[{torch:flash}]
     });
   }catch(e){
-    updateStatus("الفلاش غير مدعوم");
+    alert("الفلاش غير مدعوم");
   }
 }
 
+async function onScan(code){
+  document.getElementById("code").innerText=code;
+
+  beep(); // 🔊 الصوت هنا
+
+  fetchProduct(code);
+}
+
 async function fetchProduct(code){
-  updateStatus("جاري البحث...");
+  document.getElementById("status").innerText="جاري البحث...";
 
   try{
     let res=await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
@@ -213,24 +208,21 @@ async function fetchProduct(code){
     if(data.status==1){
       let p=data.product;
 
-      document.getElementById("productName").innerText=p.product_name || "غير معروف";
-      document.getElementById("countryText").innerText=p.countries || "—";
-
-      document.getElementById("priceText").innerText=
-        p.price || p.price_per_unit || "غير متوفر";
+      document.getElementById("name").innerText=p.product_name||"—";
+      document.getElementById("country").innerText=p.countries||"—";
+      document.getElementById("price").innerText=p.price||p.price_per_unit||"—";
 
       let img=document.getElementById("productImage");
-      img.src=p.image_front_url || p.image_url || "";
+      img.src=p.image_front_url||p.image_url||"";
       img.style.display="block";
 
-      updateStatus("تم التعرف");
-
+      document.getElementById("status").innerText="تم التعرف";
     }else{
-      updateStatus("غير موجود");
+      document.getElementById("status").innerText="غير موجود";
     }
 
   }catch(e){
-    updateStatus("خطأ");
+    document.getElementById("status").innerText="خطأ";
   }
 }
 </script>
