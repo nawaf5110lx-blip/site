@@ -128,7 +128,7 @@ let scanner=null;
 let flash=false;
 let audioCtx=null;
 
-// 🔊 صوت مضمون 100%
+// 🔊 صوت
 function beep(){
   try{
     if(!audioCtx){
@@ -153,8 +153,33 @@ function beep(){
   }catch(e){}
 }
 
+// 🚫 منع السبام
+let lastCode=null;
+let scanningLocked=false;
+
+async function onScan(code){
+
+  if(scanningLocked || code===lastCode) return;
+
+  scanningLocked=true;
+  lastCode=code;
+
+  document.getElementById("code").innerText=code;
+
+  beep();
+
+  if(navigator.vibrate){
+    navigator.vibrate(150);
+  }
+
+  await fetchProduct(code);
+
+  setTimeout(()=>{
+    scanningLocked=false;
+  },2000);
+}
+
 async function startScanner(){
-  // 🔥 تفعيل الصوت
   if(!audioCtx){
     audioCtx=new (window.AudioContext||window.webkitAudioContext)();
   }
@@ -188,14 +213,6 @@ async function toggleFlash(){
   }catch(e){
     alert("الفلاش غير مدعوم");
   }
-}
-
-async function onScan(code){
-  document.getElementById("code").innerText=code;
-
-  beep(); // 🔊 الصوت هنا
-
-  fetchProduct(code);
 }
 
 async function fetchProduct(code){
