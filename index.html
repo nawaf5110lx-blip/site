@@ -7,12 +7,7 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Arial,sans-serif;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
 
 body{
   min-height:100vh;
@@ -21,15 +16,10 @@ body{
   padding:18px;
 }
 
-.container{
-  max-width:950px;
-  margin:auto;
-}
+.container{max-width:950px;margin:auto}
 
 .card{
   background:rgba(255,255,255,.82);
-  border:1px solid rgba(255,255,255,.35);
-  backdrop-filter:blur(18px);
   border-radius:28px;
   padding:22px;
   box-shadow:0 20px 60px rgba(0,0,0,.2);
@@ -50,22 +40,12 @@ body{
 }
 
 .keeta-logo{
-  width:72px;
-  height:72px;
+  width:120px;
+  height:60px;
   object-fit:contain;
-  border-radius:18px;
+  border-radius:16px;
   background:#fff;
-  padding:6px;
-}
-
-h1{
-  font-size:28px;
-}
-
-.sub{
-  font-size:14px;
-  color:#111;
-  margin-top:4px;
+  padding:8px 12px;
 }
 
 .actions{
@@ -82,15 +62,8 @@ button{
   cursor:pointer;
 }
 
-.main-btn{
-  background:#ffd800;
-  color:#111;
-}
-
-.sec-btn{
-  background:#17d3b5;
-  color:#fff;
-}
+.main-btn{background:#ffd800;color:#111}
+.sec-btn{background:#17d3b5;color:#fff}
 
 .camera-wrap{
   position:relative;
@@ -99,69 +72,27 @@ button{
   border-radius:24px;
   overflow:hidden;
   background:#000;
-  border:2px solid rgba(255,255,255,.15);
 }
 
-#reader{
-  width:100%;
-  min-height:360px;
-}
-
-.scan-overlay{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+#reader{width:100%}
 
 .scan-box{
-  width:280px;
-  height:180px;
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:280px;height:180px;
   border:3px solid #fff;
   border-radius:18px;
-  box-shadow:
-    0 0 0 9999px rgba(0,0,0,.35),
-    0 0 25px rgba(255,255,255,.4);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.35);
 }
 
-.scan-line{
-  position:absolute;
-  width:260px;
-  height:3px;
-  background:#00ff99;
-  box-shadow:0 0 12px #00ff99;
-  animation:scanMove 2s linear infinite;
-}
-
-@keyframes scanMove{
-  0%{transform:translateY(-75px)}
-  50%{transform:translateY(75px)}
-  100%{transform:translateY(-75px)}
-}
-
-.status{
-  text-align:center;
-  margin-top:16px;
-  color:#111;
-}
+.status{text-align:center;margin-top:16px}
 
 .box{
   margin-top:22px;
-  background:rgba(255,255,255,.55);
+  background:rgba(255,255,255,.6);
   border-radius:22px;
   padding:20px;
-}
-
-.row{
-  margin:10px 0;
-  line-height:1.9;
-}
-
-.label{
-  font-weight:bold;
-  color:#111;
 }
 
 #productImage{
@@ -173,304 +104,136 @@ button{
   background:#fff;
   padding:10px;
 }
-
-.history h2{
-  margin-bottom:14px;
-}
-
-.item{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  background:rgba(255,255,255,.65);
-  border-radius:18px;
-  padding:12px;
-  margin-bottom:12px;
-}
-
-.item img{
-  width:80px;
-  height:80px;
-  object-fit:contain;
-  background:#fff;
-  padding:6px;
-  border-radius:14px;
-}
-
-.small{
-  font-size:14px;
-  color:#111;
-}
-
-@media(max-width:700px){
-  .header{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-}
 </style>
 </head>
+
 <body>
 
 <div class="container">
-  <div class="card">
+<div class="card">
 
-    <div class="header">
-      <div class="brand">
-        <img src="https://i.imgur.com/5jQkX6M.png" alt="Keeta" class="keeta-logo">
-        <div>
-          <h1>Keeta Scanner</h1>
-          <p class="sub">ماسح ذكي للباركود مع صوت وفلاش اختياري</p>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="main-btn" onclick="startScanner()">تشغيل الكاميرا</button>
-        <button class="sec-btn" onclick="stopScanner()">إيقاف</button>
-        <button class="sec-btn" onclick="toggleFlash()">تشغيل / إيقاف الفلاش</button>
-      </div>
+<div class="header">
+  <div class="brand">
+    <!-- ✅ الشعار الجديد -->
+    <img src="https://img-ap-hongkong.mykeeta.net/sailorfempcpublic/keeta_icon.png" class="keeta-logo">
+    <div>
+      <h1>Keeta Scanner</h1>
+      <p>ماسح باركود ذكي</p>
     </div>
+  </div>
 
-    <div class="camera-wrap">
-      <div id="reader"></div>
-
-      <div class="scan-overlay">
-        <div class="scan-box"></div>
-        <div class="scan-line"></div>
-      </div>
-    </div>
-
-    <div class="status" id="statusText">اضغط تشغيل الكاميرا</div>
-
-    <div class="box">
-      <div class="row"><span class="label">الباركود:</span> <span id="barcodeText">—</span></div>
-      <div class="row"><span class="label">اسم المنتج:</span> <span id="productName">—</span></div>
-      <div class="row"><span class="label">السعر:</span> <span id="priceText">—</span></div>
-      <div class="row"><span class="label">بلد المنشأ:</span> <span id="countryText">—</span></div>
-      <img id="productImage" alt="صورة المنتج">
-    </div>
-
-    <div class="box history">
-      <h2>سجل المنتجات</h2>
-      <div id="historyList"></div>
-    </div>
-
+  <div class="actions">
+    <button class="main-btn" onclick="startScanner()">تشغيل</button>
+    <button class="sec-btn" onclick="stopScanner()">إيقاف</button>
+    <button class="sec-btn" onclick="toggleFlash()">فلاش</button>
   </div>
 </div>
 
-<audio id="beep" preload="auto">
-  <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+<div class="camera-wrap">
+  <div id="reader"></div>
+  <div class="scan-box"></div>
+</div>
+
+<div class="status" id="statusText">اضغط تشغيل الكاميرا</div>
+
+<div class="box">
+  <p>الباركود: <span id="barcodeText">—</span></p>
+  <p>اسم المنتج: <span id="productName">—</span></p>
+  <p>السعر: <span id="priceText">—</span></p>
+  <p>الدولة: <span id="countryText">—</span></p>
+  <img id="productImage">
+</div>
+
+</div>
+</div>
+
+<!-- ✅ صوت طوط أقوى -->
+<audio id="beep">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_115b9b1a2c.mp3">
 </audio>
 
 <script>
-let scanner = null;
-let scanCooldown = false;
-let lastScanned = null;
-let flashOn = false;
+let scanner=null;
+let flashOn=false;
 
-function updateStatus(text){
-  document.getElementById("statusText").innerText = text;
+function updateStatus(t){
+  document.getElementById("statusText").innerText=t;
 }
 
-async function playBeep(){
-  try{
-    const audio = document.getElementById("beep");
-    audio.currentTime = 0;
-    await audio.play();
-  }catch(e){}
-}
-
-function loadHistory(){
-  const history = JSON.parse(localStorage.getItem("keetaHistory")) || [];
-  const list = document.getElementById("historyList");
-
-  list.innerHTML = "";
-
-  if(!history.length){
-    list.innerHTML = '<p class="small">لا يوجد منتجات محفوظة</p>';
-    return;
-  }
-
-  history.forEach(item => {
-    list.innerHTML += `
-      <div class="item">
-        <img src="${item.image || ''}" onerror="this.style.display='none'">
-        <div>
-          <div>${item.name || "منتج غير معروف"}</div>
-          <div class="small">${item.price || "غير متوفر"}</div>
-          <div class="small">${item.country || "غير متوفر"}</div>
-        </div>
-      </div>
-    `;
-  });
-}
-
-function saveToHistory(product){
-  let history = JSON.parse(localStorage.getItem("keetaHistory")) || [];
-
-  if(!history.some(item => item.code === product.code)){
-    history.unshift(product);
-    history = history.slice(0,50);
-    localStorage.setItem("keetaHistory", JSON.stringify(history));
-    loadHistory();
-  }
+function playBeep(){
+  let a=document.getElementById("beep");
+  a.currentTime=0;
+  a.play();
 }
 
 async function startScanner(){
-  try{
-    updateStatus("جاري تشغيل الكاميرا...");
+  scanner=new Html5Qrcode("reader");
 
-    if(scanner){
-      await scanner.stop().catch(() => {});
-      await scanner.clear().catch(() => {});
+  await scanner.start(
+    {facingMode:"environment"},
+    {fps:30,qrbox:{width:280,height:180}},
+    async (text)=>{
+      document.getElementById("barcodeText").innerText=text;
+      playBeep();
+      fetchProduct(text);
     }
+  );
 
-    scanner = new Html5Qrcode("reader", {
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.QR_CODE,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.CODE_93,
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.ITF,
-        Html5QrcodeSupportedFormats.DATA_MATRIX,
-        Html5QrcodeSupportedFormats.PDF_417
-      ],
-      verbose: false
-    });
-
-    await scanner.start(
-      { facingMode: "environment" },
-      {
-        fps: 30,
-        qrbox: { width: 280, height: 180 },
-        aspectRatio: 1.777,
-        disableFlip: false,
-        rememberLastUsedCamera: true,
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true
-        },
-        videoConstraints: {
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        }
-      },
-
-      async (decodedText) => {
-        if(scanCooldown || decodedText === lastScanned) return;
-
-        scanCooldown = true;
-        lastScanned = decodedText;
-
-        document.getElementById("barcodeText").innerText = decodedText;
-
-        await playBeep();
-
-        if(navigator.vibrate){
-          navigator.vibrate([100, 50, 100]);
-        }
-
-        await fetchProduct(decodedText);
-
-        setTimeout(() => {
-          scanCooldown = false;
-        }, 1000);
-      },
-
-      () => {}
-    );
-
-    updateStatus("ضع الباركود داخل الإطار الأبيض");
-
-  }catch(err){
-    console.error(err);
-    updateStatus("تعذر تشغيل الكاميرا — ارفع الملف على GitHub Pages أو HTTPS");
-  }
+  updateStatus("وجّه الكاميرا على الباركود");
 }
 
 async function stopScanner(){
-  try{
-    if(scanner){
-      await scanner.stop();
-      await scanner.clear();
-      scanner = null;
-      updateStatus("تم إيقاف الكاميرا");
-    }
-  }catch(e){}
+  if(scanner){
+    await scanner.stop();
+    scanner=null;
+  }
 }
 
 async function toggleFlash(){
+  if(!scanner) return;
+
+  flashOn=!flashOn;
   try{
-    if(!scanner) return;
-
-    flashOn = !flashOn;
-
     await scanner.applyVideoConstraints({
-      advanced: [{ torch: flashOn }]
+      advanced:[{torch:flashOn}]
     });
-
-    updateStatus(flashOn ? "تم تشغيل الفلاش" : "تم إيقاف الفلاش");
   }catch(e){
-    updateStatus("الفلاش غير مدعوم على هذا الجهاز");
+    updateStatus("الفلاش غير مدعوم");
   }
 }
 
 async function fetchProduct(code){
-  updateStatus("جاري البحث عن المنتج...");
+  updateStatus("جاري البحث...");
 
   try{
-    const response = await fetch(
-      `https://world.openfoodfacts.org/api/v0/product/${code}.json`
-    );
+    let res=await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+    let data=await res.json();
 
-    const data = await response.json();
+    if(data.status==1){
+      let p=data.product;
 
-    if(data.status === 1){
-      const p = data.product;
+      document.getElementById("productName").innerText=p.product_name || "غير متوفر";
+      document.getElementById("countryText").innerText=p.countries || "—";
 
-      const product = {
-        code,
-        name: p.product_name || "غير متوفر",
-        price: "غير متوفر",
-        country: p.countries || "غير متوفر",
-        image: p.image_front_url || p.image_url || ""
-      };
+      // ✅ السعر (إذا متوفر)
+      document.getElementById("priceText").innerText=
+        p.price || p.price_per_unit || "غير متوفر";
 
-      showProduct(product);
+      // ✅ الصورة
+      let img=document.getElementById("productImage");
+      img.src=p.image_front_url || p.image_url || "";
+      img.style.display="block";
+
       updateStatus("تم العثور على المنتج");
 
     }else{
-      updateStatus("لم يتم العثور على المنتج");
+      updateStatus("المنتج غير موجود");
     }
 
-  }catch(error){
-    console.error(error);
-    updateStatus("حدث خطأ أثناء جلب البيانات");
+  }catch(e){
+    updateStatus("خطأ في الاتصال");
   }
 }
-
-function showProduct(product){
-  document.getElementById("productName").innerText = product.name || "—";
-  document.getElementById("priceText").innerText = product.price || "—";
-  document.getElementById("countryText").innerText = product.country || "—";
-
-  const img = document.getElementById("productImage");
-
-  if(product.image){
-    img.src = product.image;
-    img.style.display = "block";
-  }else{
-    img.style.display = "none";
-  }
-
-  saveToHistory(product);
-}
-
-loadHistory();
 </script>
 
 </body>
