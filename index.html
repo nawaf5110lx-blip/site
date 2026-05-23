@@ -1,14 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-
+<html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>KETA SCAN</title>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
+<title>NAWAF SYSTEM</title>
 
 <style>
 
@@ -19,359 +15,574 @@ box-sizing:border-box;
 }
 
 body{
-
-font-family:Arial;
-background:#020617;
+font-family:sans-serif;
+background:black;
 color:white;
-min-height:100vh;
-padding:20px;
+overflow:hidden;
+}
+
+/* LOGIN PAGE */
+
+#loginPage{
+position:absolute;
+width:100%;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:black;
+z-index:10;
+}
+
+.bg{
+position:absolute;
+width:100%;
+height:100%;
+
+background:
+radial-gradient(circle at top left,#ff9900,transparent 30%),
+radial-gradient(circle at bottom right,#ff5500,transparent 30%),
+#050505;
+
+animation:bgMove 8s infinite alternate;
+}
+
+@keyframes bgMove{
+
+from{
+filter:hue-rotate(0deg);
+}
+
+to{
+filter:hue-rotate(25deg);
+}
 
 }
 
-.container{
+.login-box{
 
-max-width:1300px;
-margin:auto;
+position:relative;
 
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:25px;
+width:360px;
 
-}
+padding:35px;
 
-.card{
+border-radius:25px;
 
-background:#0f172a;
-padding:25px;
-border-radius:30px;
+backdrop-filter:blur(20px);
+
+background:rgba(20,20,20,0.75);
+
+border:1px solid rgba(255,255,255,0.1);
 
 box-shadow:
-0 0 40px rgba(14,165,233,.15);
+0 0 35px rgba(255,140,0,0.5);
 
 }
 
-.logo{
-
-font-size:45px;
-font-weight:bold;
-text-align:center;
-margin-bottom:25px;
-color:#38bdf8;
-
+h1{
+font-size:40px;
+margin-bottom:10px;
 }
 
-#reader{
+p{
+color:#aaa;
+margin-bottom:20px;
+}
+
+input{
 
 width:100%;
-border-radius:25px;
-overflow:hidden;
+
+padding:15px;
+
+margin-top:15px;
+
+border:none;
+
+border-radius:14px;
+
+background:#111;
+
+color:white;
+
+font-size:16px;
+
+outline:none;
+
+border:1px solid #222;
+
+}
+
+input:focus{
+
+border:1px solid orange;
+
+box-shadow:0 0 12px orange;
 
 }
 
 button{
 
 width:100%;
-padding:18px;
-border:none;
-border-radius:18px;
-font-size:20px;
-background:#0ea5e9;
-color:white;
-cursor:pointer;
-margin-top:20px;
 
-}
-
-.status{
+padding:15px;
 
 margin-top:18px;
-background:#22c55e;
-padding:12px 20px;
-border-radius:50px;
-display:inline-block;
+
+border:none;
+
+border-radius:14px;
+
+font-size:16px;
+
+font-weight:bold;
+
+cursor:pointer;
+
+transition:0.3s;
 
 }
 
-.product{
+.signup{
+background:linear-gradient(45deg,#ff9900,#ff5500);
+color:white;
+}
+
+.login-btn{
+background:#111;
+border:1px solid orange;
+color:white;
+}
+
+/* SOCIAL */
+
+.social-login{
+display:flex;
+gap:10px;
+margin-top:18px;
+}
+
+.google-btn,
+.apple-btn{
+
+flex:1;
 
 display:flex;
-flex-direction:column;
+
 align-items:center;
+
 justify-content:center;
+
+gap:10px;
+
+}
+
+.google-btn{
+background:white;
+color:black;
+}
+
+.apple-btn{
+background:black;
+color:white;
+border:1px solid white;
+}
+
+.social-login img{
+width:20px;
+height:20px;
+}
+
+.apple-icon{
+filter:invert(1);
+}
+
+button:hover{
+transform:scale(1.03);
+box-shadow:0 0 20px orange;
+}
+
+#msg{
+margin-top:15px;
 text-align:center;
-
+color:white;
 }
 
-.product img{
+/* BARCODE PAGE */
 
-width:280px;
-height:280px;
-object-fit:cover;
-border-radius:25px;
+#mainSite{
+display:none;
+width:100%;
+height:100vh;
+background:#050505;
+padding:20px;
+overflow:auto;
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
 margin-bottom:20px;
-background:#111827;
-
 }
 
-.product-name{
-
-font-size:40px;
-font-weight:bold;
-margin-bottom:15px;
-
+.logout{
+background:red;
+padding:12px 20px;
+border:none;
+border-radius:12px;
+color:white;
+cursor:pointer;
 }
 
-.info{
-
-font-size:24px;
-margin-top:10px;
-color:#cbd5e1;
-
-}
-
-.barcode{
-
+video{
+width:100%;
+max-width:500px;
+border-radius:20px;
+border:2px solid orange;
 margin-top:20px;
-font-size:20px;
-color:#38bdf8;
-
 }
 
-@media(max-width:900px){
-
-.container{
-
-grid-template-columns:1fr;
-
+.result{
+margin-top:20px;
+background:#111;
+padding:20px;
+border-radius:20px;
 }
 
-.product-name{
-
-font-size:30px;
-
+.result img{
+width:150px;
+border-radius:15px;
+margin-top:15px;
 }
 
+.scan-btn{
+background:orange;
+color:white;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<div class="container">
+<!-- LOGIN -->
 
-<div class="card">
+<div id="loginPage">
 
-<div class="logo">
-KETA SCAN
-</div>
+<div class="bg"></div>
 
-<div id="reader"></div>
+<div class="login-box">
 
-<button onclick="startScanner()">
-تشغيل الكاميرا
+<h1>NAWAF SYSTEM</h1>
+
+<p>Secure Access Panel</p>
+
+<input type="email" id="email" placeholder="Email">
+
+<input type="password" id="password" placeholder="Password">
+
+<button class="signup" onclick="signup()">
+Sign Up
 </button>
 
-<div class="status" id="status">
-جاهز للمسح
-</div>
+<button class="login-btn" onclick="login()">
+Sign In
+</button>
 
-</div>
+<div class="social-login">
 
-<div class="card product">
+<button onclick="googleLogin()" class="google-btn">
 
 <img
-id="productImage"
-src="https://via.placeholder.com/300x300?text=KETA"
-/>
+src="https://cdn-icons-png.flaticon.com/512/300/300221.png">
 
-<div
-class="product-name"
-id="productName"
->
+Google
 
-بانتظار القراءة...
+</button>
 
-</div>
+<button onclick="appleLogin()" class="apple-btn">
 
-<div
-class="info"
-id="productPrice"
->
+<img
+src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg"
+class="apple-icon">
 
-السعر: —
+Apple
+
+</button>
 
 </div>
 
-<div
-class="info"
-id="productCountry"
->
-
-بلد المنشأ: —
-
-</div>
-
-<div
-class="barcode"
-id="barcode"
->
-
-Barcode: —
+<p id="msg"></p>
 
 </div>
 
 </div>
 
+<!-- MAIN SITE -->
+
+<div id="mainSite">
+
+<div class="top">
+
+<h1>KETA SCAN 🔥</h1>
+
+<button class="logout" onclick="logout()">
+Logout
+</button>
+
 </div>
 
-<script>
+<button class="scan-btn" onclick="startScanner()">
+Start Scanner
+</button>
 
-const products = {
+<br>
 
-"628100000001": {
+<video id="video" autoplay playsinline></video>
 
-name: "بيبسي",
+<div class="result">
 
-price: "4 ريال",
+<h2>Barcode Result</h2>
 
-country: "السعودية",
+<p id="barcodeText">Waiting...</p>
 
-image:
-"https://upload.wikimedia.org/wikipedia/commons/0/0f/Pepsi_can_2023.png"
+<img id="productImage" src="" style="display:none;">
 
-},
+<p id="productName"></p>
 
-"628100000002": {
+<p id="productPrice"></p>
 
-name: "شيبس",
+<p id="productCountry"></p>
 
-price: "7 ريال",
+</div>
 
-country: "الإمارات",
+</div>
 
-image:
-"https://upload.wikimedia.org/wikipedia/commons/6/69/Potato-Chips.jpg"
+<script type="module">
 
-},
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-"628100000003": {
+import {
 
-name: "شوكولاتة",
+getAuth,
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword,
+GoogleAuthProvider,
+signInWithPopup,
+OAuthProvider,
+signOut
 
-price: "12 ريال",
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-country: "سويسرا",
+import {
 
-image:
-"https://upload.wikimedia.org/wikipedia/commons/7/70/Chocolate_%28blue_background%29.jpg"
+BrowserMultiFormatReader
 
-}
+} from "https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm";
+
+/* FIREBASE */
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyDDRhhu8zgYePceanrXE8IeEo_bn0aPGB0",
+
+authDomain: "keta-scan.firebaseapp.com",
+
+databaseURL: "https://keta-scan-default-rtdb.firebaseio.com",
+
+projectId: "keta-scan",
+
+storageBucket: "keta-scan.firebasestorage.app",
+
+messagingSenderId: "603380357430",
+
+appId: "1:603380357430:web:08603b5c00afabec54bb97",
+
+measurementId: "G-8VCSY4EFTQ"
 
 };
 
-let scanner;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-async function startScanner(){
+/* LOGIN */
 
-try{
+window.signup = function(){
 
-scanner =
-new Html5Qrcode("reader");
+const email =
+document.getElementById("email").value;
 
-await scanner.start(
+const password =
+document.getElementById("password").value;
 
-{
-facingMode:"environment"
-},
+createUserWithEmailAndPassword(auth,email,password)
 
-{
-fps:10,
-qrbox:250
-},
+.then(() => {
 
-(successText)=>{
+showSite();
 
-document.getElementById("status")
-.innerText =
-"تمت القراءة ✅";
+})
 
-document.getElementById("barcode")
-.innerText =
-"Barcode: " + successText;
+.catch((error)=>{
 
-const beep = new Audio(
-"https://www.soundjay.com/buttons/sounds/beep-08b.mp3"
-);
+document.getElementById("msg").innerHTML =
+error.message;
 
-beep.volume = 1;
+});
 
-beep.play();
+};
 
-if(products[successText]){
+window.login = function(){
 
-const product =
-products[successText];
+const email =
+document.getElementById("email").value;
 
-document.getElementById("productName")
-.innerText =
-product.name;
+const password =
+document.getElementById("password").value;
 
-document.getElementById("productPrice")
-.innerText =
-"السعر: " +
-product.price;
+signInWithEmailAndPassword(auth,email,password)
 
-document.getElementById("productCountry")
-.innerText =
-"بلد المنشأ: " +
-product.country;
+.then(() => {
 
-document.getElementById("productImage")
-.src =
-product.image;
+showSite();
+
+})
+
+.catch((error)=>{
+
+document.getElementById("msg").innerHTML =
+error.message;
+
+});
+
+};
+
+window.googleLogin = function(){
+
+const provider =
+new GoogleAuthProvider();
+
+signInWithPopup(auth,provider)
+
+.then(() => {
+
+showSite();
+
+})
+
+.catch((error)=>{
+
+document.getElementById("msg").innerHTML =
+error.message;
+
+});
+
+};
+
+window.appleLogin = function(){
+
+const provider =
+new OAuthProvider('apple.com');
+
+signInWithPopup(auth,provider)
+
+.then(() => {
+
+showSite();
+
+})
+
+.catch((error)=>{
+
+document.getElementById("msg").innerHTML =
+error.message;
+
+});
+
+};
+
+window.logout = function(){
+
+signOut(auth).then(()=>{
+
+document.getElementById("loginPage").style.display = "flex";
+
+document.getElementById("mainSite").style.display = "none";
+
+});
+
+};
+
+function showSite(){
+
+document.getElementById("loginPage").style.display = "none";
+
+document.getElementById("mainSite").style.display = "block";
 
 }
-else{
 
-document.getElementById("productName")
-.innerText =
-"منتج غير معروف";
+/* BARCODE */
 
-document.getElementById("productPrice")
-.innerText =
-"السعر: —";
+const codeReader =
+new BrowserMultiFormatReader();
 
-document.getElementById("productCountry")
-.innerText =
-"بلد المنشأ: —";
+window.startScanner = async function(){
 
-document.getElementById("productImage")
-.src =
-"https://via.placeholder.com/300x300?text=Unknown";
+const video =
+document.getElementById("video");
+
+const devices =
+await BrowserMultiFormatReader.listVideoInputDevices();
+
+const selectedDeviceId =
+devices[0].deviceId;
+
+codeReader.decodeFromVideoDevice(
+selectedDeviceId,
+video,
+
+(result, err) => {
+
+if(result){
+
+const barcode =
+result.text;
+
+document.getElementById("barcodeText").innerHTML =
+barcode;
+
+/* صوت */
+
+const audio =
+new Audio("https://www.soundjay.com/buttons/sounds/beep-07.mp3");
+
+audio.play();
+
+/* بيانات وهمية */
+
+document.getElementById("productImage").style.display = "block";
+
+document.getElementById("productImage").src =
+"https://picsum.photos/200";
+
+document.getElementById("productName").innerHTML =
+"Product: KETA ITEM";
+
+document.getElementById("productPrice").innerHTML =
+"Price: 99 SAR";
+
+document.getElementById("productCountry").innerHTML =
+"Made In: Saudi Arabia";
 
 }
 
-},
+});
 
-(error)=>{}
-
-);
-
-}
-catch(err){
-
-alert(
-"الكاميرا لم تعمل:\\n" + err
-);
-
-}
-
-}
+};
 
 </script>
 
 </body>
-
 </html>
