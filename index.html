@@ -1,174 +1,160 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>KETA SCAN</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-getDatabase,
-ref,
-set,
-onValue
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
-apiKey: "ضع_apiKey",
-authDomain: "ضع_authDomain",
-databaseURL: "ضع_databaseURL",
-projectId: "ضع_projectId",
-storageBucket: "ضع_storageBucket",
-messagingSenderId: "ضع_senderId",
-appId: "ضع_appId"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-const barcodeRef = ref(db, "liveBarcode");
-
-window.startScanner = function () {
-
-const scanner = new Html5Qrcode("reader");
-
-scanner.start(
-{ facingMode: "environment" },
-{
-fps: 10,
-qrbox: 250
-},
-(decodedText) => {
-
-set(barcodeRef, {
-code: decodedText,
-time: new Date().toLocaleTimeString()
-});
-
-document.getElementById("status").innerText = "تم المسح";
-
-},
-(error) => {}
-);
-
-};
-
-onValue(barcodeRef, (snapshot) => {
-
-const data = snapshot.val();
-
-if(data){
-
-document.getElementById("barcode").innerText = data.code;
-document.getElementById("time").innerText =
-"آخر عملية: " + data.time;
-
-const audio = new Audio(
-"https://actions.google.com/sounds/v1/cartoon/pop.ogg"
-);
-
-audio.play();
-
-}
-
-});
-</script>
-
 <style>
 
-body{
+*{
 margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+
 font-family:Arial;
 background:#020617;
 color:white;
 min-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
 padding:20px;
+
 }
 
 .container{
-width:100%;
-max-width:1200px;
+
+max-width:1300px;
+margin:auto;
+
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:20px;
+gap:25px;
+
 }
 
 .card{
+
 background:#0f172a;
+padding:25px;
 border-radius:30px;
-padding:20px;
-box-shadow:0 0 30px rgba(59,130,246,.2);
+
+box-shadow:
+0 0 40px rgba(14,165,233,.15);
+
 }
 
 .logo{
-font-size:40px;
+
+font-size:45px;
 font-weight:bold;
-margin-bottom:20px;
 text-align:center;
+margin-bottom:25px;
 color:#38bdf8;
+
 }
 
 #reader{
+
+width:100%;
+border-radius:25px;
 overflow:hidden;
-border-radius:20px;
-}
 
-.live{
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-height:100%;
-}
-
-.barcode{
-font-size:40px;
-margin-top:20px;
-word-break:break-all;
-text-align:center;
-color:#22d3ee;
-}
-
-.time{
-margin-top:15px;
-color:#94a3b8;
 }
 
 button{
+
 width:100%;
-padding:16px;
+padding:18px;
 border:none;
-border-radius:16px;
-font-size:18px;
+border-radius:18px;
+font-size:20px;
 background:#0ea5e9;
 color:white;
 cursor:pointer;
 margin-top:20px;
+
 }
 
 .status{
-margin-top:15px;
+
+margin-top:18px;
 background:#22c55e;
-padding:10px 18px;
+padding:12px 20px;
 border-radius:50px;
 display:inline-block;
+
+}
+
+.product{
+
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+text-align:center;
+
+}
+
+.product img{
+
+width:280px;
+height:280px;
+object-fit:cover;
+border-radius:25px;
+margin-bottom:20px;
+background:#111827;
+
+}
+
+.product-name{
+
+font-size:40px;
+font-weight:bold;
+margin-bottom:15px;
+
+}
+
+.info{
+
+font-size:24px;
+margin-top:10px;
+color:#cbd5e1;
+
+}
+
+.barcode{
+
+margin-top:20px;
+font-size:20px;
+color:#38bdf8;
+
 }
 
 @media(max-width:900px){
 
 .container{
+
 grid-template-columns:1fr;
+
+}
+
+.product-name{
+
+font-size:30px;
+
 }
 
 }
 
 </style>
+
 </head>
 
 <body>
@@ -177,7 +163,9 @@ grid-template-columns:1fr;
 
 <div class="card">
 
-<div class="logo">KETA SCAN</div>
+<div class="logo">
+KETA SCAN
+</div>
 
 <div id="reader"></div>
 
@@ -191,19 +179,199 @@ grid-template-columns:1fr;
 
 </div>
 
-<div class="card live">
+<div class="card product">
 
-<h1>الباركود المباشر</h1>
+<img
+id="productImage"
+src="https://via.placeholder.com/300x300?text=KETA"
+/>
 
-<div class="barcode" id="barcode">
-بانتظار المسح...
+<div
+class="product-name"
+id="productName"
+>
+
+بانتظار القراءة...
+
 </div>
 
-<div class="time" id="time"></div>
+<div
+class="info"
+id="productPrice"
+>
+
+السعر: —
+
+</div>
+
+<div
+class="info"
+id="productCountry"
+>
+
+بلد المنشأ: —
+
+</div>
+
+<div
+class="barcode"
+id="barcode"
+>
+
+Barcode: —
 
 </div>
 
 </div>
+
+</div>
+
+<script>
+
+const products = {
+
+"628100000001": {
+
+name: "بيبسي",
+
+price: "4 ريال",
+
+country: "السعودية",
+
+image:
+"https://upload.wikimedia.org/wikipedia/commons/0/0f/Pepsi_can_2023.png"
+
+},
+
+"628100000002": {
+
+name: "شيبس",
+
+price: "7 ريال",
+
+country: "الإمارات",
+
+image:
+"https://upload.wikimedia.org/wikipedia/commons/6/69/Potato-Chips.jpg"
+
+},
+
+"628100000003": {
+
+name: "شوكولاتة",
+
+price: "12 ريال",
+
+country: "سويسرا",
+
+image:
+"https://upload.wikimedia.org/wikipedia/commons/7/70/Chocolate_%28blue_background%29.jpg"
+
+}
+
+};
+
+let scanner;
+
+async function startScanner(){
+
+try{
+
+scanner =
+new Html5Qrcode("reader");
+
+await scanner.start(
+
+{
+facingMode:"environment"
+},
+
+{
+fps:10,
+qrbox:250
+},
+
+(successText)=>{
+
+document.getElementById("status")
+.innerText =
+"تمت القراءة ✅";
+
+document.getElementById("barcode")
+.innerText =
+"Barcode: " + successText;
+
+const beep = new Audio(
+"https://www.soundjay.com/buttons/sounds/beep-08b.mp3"
+);
+
+beep.volume = 1;
+
+beep.play();
+
+if(products[successText]){
+
+const product =
+products[successText];
+
+document.getElementById("productName")
+.innerText =
+product.name;
+
+document.getElementById("productPrice")
+.innerText =
+"السعر: " +
+product.price;
+
+document.getElementById("productCountry")
+.innerText =
+"بلد المنشأ: " +
+product.country;
+
+document.getElementById("productImage")
+.src =
+product.image;
+
+}
+else{
+
+document.getElementById("productName")
+.innerText =
+"منتج غير معروف";
+
+document.getElementById("productPrice")
+.innerText =
+"السعر: —";
+
+document.getElementById("productCountry")
+.innerText =
+"بلد المنشأ: —";
+
+document.getElementById("productImage")
+.src =
+"https://via.placeholder.com/300x300?text=Unknown";
+
+}
+
+},
+
+(error)=>{}
+
+);
+
+}
+catch(err){
+
+alert(
+"الكاميرا لم تعمل:\\n" + err
+);
+
+}
+
+}
+
+</script>
 
 </body>
+
 </html>
